@@ -1,17 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CloudOff } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { Providers } from "@/components/Providers";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { TemplateGallery } from "@/components/dashboard/TemplateGallery";
-import { RecentProjects } from "@/components/dashboard/RecentProjects";
+import { ProjectsPanel } from "@/components/dashboard/ProjectsPanel";
 import { CustomizeForm } from "@/components/dashboard/CustomizeForm";
 import { PreviewPane } from "@/components/dashboard/PreviewPane";
 import { useReceiptStore } from "@/lib/store";
+import { useProjects } from "@/components/projects/ProjectsProvider";
 
 export default function DashboardPage() {
+  return (
+    <Providers>
+      <Dashboard />
+    </Providers>
+  );
+}
+
+function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const hydrated = useReceiptStore((s) => s.hydrated);
+  const { error } = useProjects();
 
   useEffect(() => {
     // Client-mount guard: the persisted store rehydrates from localStorage
@@ -37,6 +49,16 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-canvas dark:bg-canvas-dark">
       <Topbar />
+
+      {error && (
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 pt-3 lg:px-6">
+          <div className="flex w-full items-center gap-2 rounded-xl border border-studio-amber/30 bg-studio-amber/10 px-4 py-2 text-xs text-studio-amber">
+            <CloudOff size={14} />
+            {error}
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[280px_minmax(0,1fr)_360px] lg:px-6">
         <aside className="glass-card flex flex-col gap-6 p-5 lg:order-1">
           <div>
@@ -47,9 +69,9 @@ export default function DashboardPage() {
           </div>
           <div>
             <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide text-studio-slate">
-              Recent projects
+              Your projects
             </h2>
-            <RecentProjects />
+            <ProjectsPanel />
           </div>
         </aside>
 

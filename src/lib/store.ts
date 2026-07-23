@@ -8,69 +8,61 @@ import { createDefaultReceipt } from "./sampleData";
 
 const HISTORY_LIMIT = 40;
 
-interface ReceiptStore {
+/**
+ * The editor store owns the *current working draft* and user preferences —
+ * not the projects list. The projects list (guest localStorage or signed-in
+ * Firestore) is owned by ProjectsProvider, which observes this store and
+ * autosaves the draft to the active backend. Splitting them this way keeps a
+ * single source of truth for what's on the canvas while letting the storage
+ * backend swap underneath it (guest <-> cloud) without touching the editor.
+ */
+interface EditorStore {
   data: ReceiptData;
   past: ReceiptData[];
   future: ReceiptData[];
-  projects: Project[];
   currentProjectId: string;
+  currentProjectName: string;
   darkMode: boolean;
   hydrated: boolean;
+  // Bumps only when `data` is replaced wholesale (undo/redo/open/new) rather
+  // than edited field-by-field, so uncontrolled form inputs know to resync.
   revision: number;
+
   update: (patch: Partial<ReceiptData>) => void;
   setTemplate: (id: TemplateId) => void;
+  setAvatarUrl: (url: string | null) => void;
   undo: () => void;
   redo: () => void;
-  newProject: () => void;
-  loadProject: (id: string) => void;
-  deleteProject: (id: string) => void;
-  duplicateProject: (id: string) => void;
-  renameCurrentProject: (name: string) => void;
+  startNewDraft: () => void;
+  applyProject: (project: Project) => void;
+  setCurrentName: (name: string) => void;
   toggleDarkMode: () => void;
   setHydrated: () => void;
 }
 
-function projectName(data: ReceiptData): string {
+export function defaultProjectName(data: ReceiptData): string {
   return `${data.senderName || "Untitled"} → ${data.recipientName || "Receipt"}`;
 }
 
-function persistProject(
-  projects: Project[],
-  currentProjectId: string,
-  data: ReceiptData
-): Project[] {
-  const existing = projects.find((p) => p.id === currentProjectId);
-  const updated: Project = {
-    id: currentProjectId,
-    name: existing?.name || projectName(data),
-    data,
-    updatedAt: Date.now(),
-  };
-  const rest = projects.filter((p) => p.id !== currentProjectId);
-  return [updated, ...rest].slice(0, 24);
-}
-
-export const useReceiptStore = create<ReceiptStore>()(
+export const useReceiptStore = create<EditorStore>()(
   persist(
     (set, get) => ({
       data: createDefaultReceipt(),
       past: [],
       future: [],
-      projects: [],
       currentProjectId: nanoid(10),
+      currentProjectName: "",
       darkMode: false,
       hydrated: false,
       revision: 0,
 
       update: (patch) => {
-        const { data, past, projects, currentProjectId } = get();
+        const { data, past } = get();
         const nextData = { ...data, ...patch };
-        const nextPast = [...past, data].slice(-HISTORY_LIMIT);
         set({
           data: nextData,
-          past: nextPast,
+          past: [...past, data].slice(-HISTORY_LIMIT),
           future: [],
-          projects: persistProject(projects, currentProjectId, nextData),
         });
       },
 
@@ -78,14 +70,20 @@ export const useReceiptStore = create<ReceiptStore>()(
         get().update({ templateId: id });
       },
 
+      // Silent avatar swap (e.g. replacing a data: URL with a Storage URL
+      // after upload). Deliberately does NOT push a history entry — it's a
+      // storage detail, not a user-visible edit to undo.
+      setAvatarUrl: (url) => {
+        set((state) => ({ data: { ...state.data, avatarDataUrl: url } }));
+      },
+
       undo: () => {
         const { past, data, future } = get();
         if (past.length === 0) return;
         const previous = past[past.length - 1];
-        const rest = past.slice(0, -1);
         set((state) => ({
           data: previous,
-          past: rest,
+          past: past.slice(0, -1),
           future: [data, ...future].slice(0, HISTORY_LIMIT),
           revision: state.revision + 1,
         }));
@@ -95,87 +93,49 @@ export const useReceiptStore = create<ReceiptStore>()(
         const { future, data, past } = get();
         if (future.length === 0) return;
         const next = future[0];
-        const rest = future.slice(1);
         set((state) => ({
           data: next,
           past: [...past, data].slice(-HISTORY_LIMIT),
-          future: rest,
+          future: future.slice(1),
           revision: state.revision + 1,
         }));
       },
 
-      newProject: () => {
+      startNewDraft: () => {
         const fresh = createDefaultReceipt();
-        const id = nanoid(10);
         set((state) => ({
           data: fresh,
           past: [],
           future: [],
-          currentProjectId: id,
-          projects: persistProject(state.projects, id, fresh),
+          currentProjectId: nanoid(10),
+          currentProjectName: defaultProjectName(fresh),
           revision: state.revision + 1,
         }));
       },
 
-      loadProject: (id) => {
-        const project = get().projects.find((p) => p.id === id);
-        if (!project) return;
+      applyProject: (project) => {
         set((state) => ({
           data: project.data,
-          currentProjectId: id,
+          currentProjectId: project.id,
+          currentProjectName: project.name,
           past: [],
           future: [],
           revision: state.revision + 1,
         }));
       },
 
-      deleteProject: (id) => {
-        set((state) => {
-          const projects = state.projects.filter((p) => p.id !== id);
-          if (state.currentProjectId !== id) return { projects };
-          const fresh = createDefaultReceipt();
-          const newId = nanoid(10);
-          return {
-            projects: persistProject(projects, newId, fresh),
-            data: fresh,
-            currentProjectId: newId,
-            past: [],
-            future: [],
-            revision: state.revision + 1,
-          };
-        });
-      },
-
-      duplicateProject: (id) => {
-        const project = get().projects.find((p) => p.id === id);
-        if (!project) return;
-        const newId = nanoid(10);
-        set((state) => ({
-          projects: [
-            { id: newId, name: `${project.name} copy`, data: project.data, updatedAt: Date.now() },
-            ...state.projects,
-          ].slice(0, 24),
-        }));
-      },
-
-      renameCurrentProject: (name) => {
-        set((state) => ({
-          projects: state.projects.map((p) =>
-            p.id === state.currentProjectId ? { ...p, name } : p
-          ),
-        }));
-      },
+      setCurrentName: (name) => set({ currentProjectName: name }),
 
       toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
 
       setHydrated: () => set({ hydrated: true }),
     }),
     {
-      name: "receipt-studio-state",
+      name: "receipt-studio-editor",
       partialize: (state) => ({
         data: state.data,
-        projects: state.projects,
         currentProjectId: state.currentProjectId,
+        currentProjectName: state.currentProjectName,
         darkMode: state.darkMode,
       }),
       onRehydrateStorage: () => (state) => {

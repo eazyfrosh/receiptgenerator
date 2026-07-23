@@ -23,6 +23,16 @@ yarn-error.log*
 .env*.local
 .env
 
+# firebase (local emulator artifacts & secrets)
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+database-debug.log*
+pubsub-debug.log*
+storage-debug.log*
+.firebase/
+firebase-service-account*.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
