@@ -1,0 +1,33 @@
+export function Logo({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#7C5CFF" />
+          <stop offset="100%" stopColor="#2AD9BF" />
+        </linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="18" fill="url(#logo-g)" />
+      <path
+        d="M18 15h20a3 3 0 0 1 3 3v29.5l-3.6-2.4-3.6 2.4-3.6-2.4-3.6 2.4-3.6-2.4-3.6 2.4V18a3 3 0 0 1 3-3z"
+        fill="white"
+        fillOpacity={0.94}
+      />
+      <path
+        d="M23 24h13M23 30h13M23 36h8"
+        stroke="#5B3FE0"
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
+      <circle cx="45" cy="20" r="6.5" fill="#12131A" />
+      <path
+        d="M42.2 20.2l2 2 3.6-4.2"
+        stroke="#2AD9BF"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}

@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-canvas text-studio-ink dark:bg-canvas-dark dark:text-white transition-colors duration-300;
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/70 dark:bg-surface-dark/60 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-glass;
+  }
+
+  .glass-card {
+    @apply rounded-xl3 bg-white/60 dark:bg-surface-dark/50 backdrop-blur-lg border border-white/50 dark:border-white/10 shadow-glass;
+  }
+
+  .field-input {
+    @apply w-full rounded-xl border border-studio-mist/40 bg-white/80 dark:bg-white/5 dark:border-white/10 px-3.5 py-2.5 text-sm text-studio-ink dark:text-white placeholder:text-studio-mist focus:outline-none focus:ring-2 focus:ring-studio-flux/50 transition;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-studio-slate dark:text-studio-mist;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-studio-flux to-studio-mintDark px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 rounded-xl border border-studio-mist/30 bg-white/60 dark:bg-white/5 dark:border-white/10 px-4 py-2.5 text-sm font-medium text-studio-ink dark:text-white hover:bg-white/90 dark:hover:bg-white/10 transition active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
+  }
+
+  .btn-icon {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-lg border border-studio-mist/30 bg-white/60 dark:bg-white/5 dark:border-white/10 text-studio-ink dark:text-white hover:bg-white/90 dark:hover:bg-white/10 transition active:scale-[0.94] disabled:opacity-30 disabled:pointer-events-none;
+  }
+}
+
+/* Non-removable, non-croppable fictional watermark: a full-bleed repeating
+   diagonal band baked directly into every receipt render and every export. */
+.fictional-watermark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* html-to-image rasterizes via an SVG foreignObject clone, which does not
+     reliably honor overflow:hidden against a rotated, oversized child (the
+     diagonal watermark band below) the way a live browser paint does — the
+     band would bleed past the card's right edge in exports only. clip-path
+     is respected in that rasterization path, so it backs overflow up. */
+  clip-path: inset(0);
+  z-index: 40;
+}
+
+/*
+ * The watermark must stay legible on every template regardless of that
+ * template's own background (some are near-black, some near-white, some
+ * split top/bottom) AND regardless of the dashboard's light/dark toggle,
+ * which is a separate, independent thing from a template's own colors.
+ * Rather than pick one ink color, two full passes are layered on top of
+ * each other — a dark-ink pass and a white pass — so at least one of them
+ * always has contrast against whatever sits underneath.
+ */
+.fictional-watermark::before,
+.fictional-watermark::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+}
+
+.fictional-watermark::before {
+  background-image: repeating-linear-gradient(
+    -32deg,
+    rgba(18, 19, 26, 0.16) 0px,
+    rgba(18, 19, 26, 0.16) 2px,
+    transparent 2px,
+    transparent 220px
+  );
+}
+
+.fictional-watermark::after {
+  background-image: repeating-linear-gradient(
+    -32deg,
+    rgba(255, 255, 255, 0.16) 0px,
+    rgba(255, 255, 255, 0.16) 2px,
+    transparent 2px,
+    transparent 220px
+  );
+  transform: translateX(110px);
+}
+
+.fictional-watermark-band {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-32deg);
+  width: 165%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.75rem;
+  white-space: nowrap;
+}
+
+.fictional-watermark-row {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: space-between;
+  font-family: var(--font-sora);
+  font-weight: 800;
+  font-size: clamp(0.9rem, 2.6vw, 1.5rem);
+  letter-spacing: 0.08em;
+}
+
+.fictional-watermark-row-dark {
+  color: rgba(18, 19, 26, 0.26);
+}
+
+.fictional-watermark-row-light {
+  color: rgba(255, 255, 255, 0.28);
+}
