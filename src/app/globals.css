@@ -45,7 +45,10 @@ body {
 }
 
 /* Non-removable, non-croppable fictional watermark: a full-bleed repeating
-   diagonal band baked directly into every receipt render and every export. */
+   diagonal band baked directly into every receipt render and every export.
+   Styled as a light, understated "specimen"-style overlay — subtle enough to
+   sit behind the design cleanly, but still covering the whole card so it can
+   never be cropped out, and still legible in previews and exports. */
 .fictional-watermark {
   position: absolute;
   inset: 0;
@@ -60,43 +63,6 @@ body {
   z-index: 40;
 }
 
-/*
- * The watermark must stay legible on every template regardless of that
- * template's own background (some are near-black, some near-white, some
- * split top/bottom) AND regardless of the dashboard's light/dark toggle,
- * which is a separate, independent thing from a template's own colors.
- * Rather than pick one ink color, two full passes are layered on top of
- * each other — a dark-ink pass and a white pass — so at least one of them
- * always has contrast against whatever sits underneath.
- */
-.fictional-watermark::before,
-.fictional-watermark::after {
-  content: "";
-  position: absolute;
-  inset: -20%;
-}
-
-.fictional-watermark::before {
-  background-image: repeating-linear-gradient(
-    -32deg,
-    rgba(18, 19, 26, 0.16) 0px,
-    rgba(18, 19, 26, 0.16) 2px,
-    transparent 2px,
-    transparent 220px
-  );
-}
-
-.fictional-watermark::after {
-  background-image: repeating-linear-gradient(
-    -32deg,
-    rgba(255, 255, 255, 0.16) 0px,
-    rgba(255, 255, 255, 0.16) 2px,
-    transparent 2px,
-    transparent 220px
-  );
-  transform: translateX(110px);
-}
-
 .fictional-watermark-band {
   position: absolute;
   left: 50%;
@@ -105,24 +71,33 @@ body {
   width: 165%;
   display: flex;
   flex-direction: column;
-  gap: 2.75rem;
+  gap: 3.4rem;
   white-space: nowrap;
 }
 
 .fictional-watermark-row {
   display: flex;
-  gap: 2.5rem;
+  gap: 3rem;
   justify-content: space-between;
   font-family: var(--font-sora);
-  font-weight: 800;
-  font-size: clamp(0.9rem, 2.6vw, 1.5rem);
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  font-size: clamp(0.8rem, 2.3vw, 1.3rem);
+  letter-spacing: 0.18em;
 }
 
+/*
+ * The watermark must stay legible on every template regardless of that
+ * template's own background (some are near-black, some near-white, some
+ * split top/bottom) AND regardless of the dashboard's light/dark toggle.
+ * Rather than pick one ink color, rows alternate a dark-ink tone and a white
+ * tone so at least one always has contrast against whatever sits underneath.
+ * Kept deliberately light for an understated look, but not so faint it stops
+ * reading in an exported JPG/PDF.
+ */
 .fictional-watermark-row-dark {
-  color: rgba(18, 19, 26, 0.26);
+  color: rgba(18, 19, 26, 0.16);
 }
 
 .fictional-watermark-row-light {
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.18);
 }

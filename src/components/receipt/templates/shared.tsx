@@ -1,6 +1,6 @@
 import { ReceiptData } from "@/lib/types";
 import { initials, formatAmount, formatDate, formatTime } from "@/lib/format";
-import { CheckCircle2, Clock3, XCircle } from "lucide-react";
+import { CheckCircle2, Clock3, XCircle, ShieldAlert } from "lucide-react";
 import clsx from "clsx";
 
 export interface TemplateProps {
@@ -133,17 +133,15 @@ export function FictionalFooterBar({ dark }: { dark?: boolean }) {
   return (
     <div
       className={clsx(
-        "relative z-50 border-t px-5 py-3 text-center",
+        "relative z-50 flex items-center justify-center gap-1.5 border-t px-4 py-2",
         dark
-          ? "border-white/10 bg-black/40 text-white/90"
-          : "border-studio-ink/10 bg-studio-ink/[0.04] text-studio-ink/80"
+          ? "border-white/10 bg-black/30 text-white/85"
+          : "border-studio-ink/10 bg-studio-ink/[0.03] text-studio-ink/70"
       )}
     >
-      <p className="font-display text-[11px] font-extrabold uppercase tracking-wider">
-        Fictional · For Entertainment Only · Not A Real Transaction
-      </p>
-      <p className="mt-0.5 text-[10px] opacity-70">
-        Prop generated with Receipt Studio — no real funds were transferred.
+      <ShieldAlert size={11} className="shrink-0 opacity-80" />
+      <p className="font-display text-[9.5px] font-bold uppercase leading-none tracking-[0.13em]">
+        Fictional · For Entertainment Only · Not a Real Transaction
       </p>
     </div>
   );
