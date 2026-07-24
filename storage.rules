@@ -1,0 +1,30 @@
+rules_version = '2';
+
+// Receipt Studio Storage security rules.
+// Avatars live under users/{userId}/avatars/{fileName}. Only the owner can
+// write (or overwrite/delete) their own images, and writes are constrained to
+// reasonably-sized image files.
+//
+// Reads are public: an avatar is baked into shareable receipt links and
+// exported images, so the image bytes are meant to be viewable by anyone
+// holding the (unguessable, tokenized) download URL. All private account and
+// project data lives in Firestore, which is strictly owner-scoped above.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/avatars/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId)
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isOwner(userId);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

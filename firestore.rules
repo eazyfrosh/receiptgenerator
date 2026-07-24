@@ -1,0 +1,41 @@
+rules_version = '2';
+
+// Receipt Studio Firestore security rules.
+// Every project lives under users/{userId}/projects/{projectId}. A signed-in
+// user may only read and write documents beneath their own user document —
+// no cross-user access, and no access at all when unauthenticated.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function validProject() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['id', 'name', 'data', 'archived', 'createdAt', 'updatedAt'])
+        && d.id is string
+        && d.name is string && d.name.size() <= 200
+        && d.data is map
+        && d.archived is bool
+        && d.createdAt is number
+        && d.updatedAt is number;
+    }
+
+    match /users/{userId} {
+      // The user document itself is not used for storage; lock it down.
+      allow read, write: if false;
+
+      match /projects/{projectId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validProject();
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

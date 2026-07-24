@@ -32,6 +32,8 @@ export interface Project {
   id: string;
   name: string;
   data: ReceiptData;
+  archived: boolean;
+  createdAt: number;
   updatedAt: number;
 }
 

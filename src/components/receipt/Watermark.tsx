@@ -1,7 +1,7 @@
 import { FICTIONAL_NOTICE } from "@/lib/types";
 
-const ROWS = 7;
-const COLS = 3;
+const ROWS = 11;
+const COLS = 4;
 
 /**
  * Full-bleed, rotated, repeated watermark. It is rendered as part of the
