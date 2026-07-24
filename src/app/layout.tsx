@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sora, Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeSync } from "@/components/ThemeSync";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -40,8 +41,10 @@ export default function RootLayout({
       <body
         className={`${sora.variable} ${manrope.variable} ${jetbrainsMono.variable} font-body min-h-screen`}
       >
-        <ThemeSync />
-        {children}
+        <AuthProvider>
+          <ThemeSync />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
